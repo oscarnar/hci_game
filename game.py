@@ -103,7 +103,8 @@ def detect_gesture(mode):
     if not ret:
         print('Failed to capture image')
         return
-    image = cv.flip(image, 1)  # ミラー表示
+    ## Rotate the image
+    # image = cv.flip(image, 1)  # ミラー表示
     debug_image = copy.deepcopy(image)
 
     # 検出実施 #############################################################

@@ -70,6 +70,9 @@ def timer():
     # game_canvas.create_line(50,-sHeight/2 + 50, sWidth/2 -50 , width=10, fill="green")
     # game_canvas.create_line(* start, * end , width=10, fill="green")
 
+    # game_canvas.config()
+    # game_canvas.itemconfig(label, fill="green")
+
     # t.pencolor("green")
     t.write("HP: " + str(HP), font=("Arial", 22, "normal"))
     # t.pencolor("red")
@@ -120,7 +123,7 @@ def timer():
         s.ontimer(timer, 10)
     else:
         # s.bye()
-        game_over()
+        gameover_screen()
         
 
 def game_over():
@@ -137,6 +140,11 @@ def game_over():
     # img = canvas_root.create_image(tmp_pos_x, tmp_pos_y, image=gameover_img)
     # isPlaying = False
     # ventana.after(1,hand_move)
+
+def print_score():
+    global HP
+    global label_score
+    label_score.config(text=HP)
 
 def click(x, y):
     global TTL
@@ -167,9 +175,51 @@ def click(x, y):
         A2 = A*((sttl[i]+st[i]-tstep-(sttl[i]*JudgmentLine))/sttl[i])
         if(A2 > 0):
             drawCSq(t, sx[i], sy[i], A+A2)
-
+    print_score()
     s.update()
 
+
+def hand_move():
+    global tmp_pos_x
+    global tmp_pos_y
+    global img
+    global canvas_root
+    global close_img
+    global hand_img
+    global isPlaying
+    game.detect_gesture(game.mode)
+    if(game.hand_state == 'Close'):
+        canvas_root.itemconfig(img,image=close_img)
+    if(game.hand_state == 'Open'):
+        canvas_root.itemconfig(img,image=hand_img)
+    tmp_x,tmp_y = autopy.mouse.location()
+    canvas_root.move(img, tmp_x - tmp_pos_x, tmp_y - tmp_pos_y)
+    tmp_pos_x ,tmp_pos_y = autopy.mouse.location()
+    # hand_canvas.move(img, 0, 1)
+    # hands_label.place(x=game.pos_x, y=game.pos_y)
+    # img = canvas_root.create_image(game.pos_x, game.pos_y, image=hand_img)
+    if(isPlaying == False):
+        ventana.after(1,hand_move)
+
+def hand_move_over():
+    global tmp_pos_x
+    global tmp_pos_y
+    global img_over
+    global canvas_gameover
+    global close_img
+    global hand_img
+    global isPlaying
+    game.detect_gesture(game.mode)
+    if(game.hand_state == 'Close'):
+        canvas_gameover.itemconfig(img_over,image=close_img)
+    if(game.hand_state == 'Open'):
+        canvas_gameover.itemconfig(img_over,image=hand_img)
+    tmp_x,tmp_y = autopy.mouse.location()
+    #BUG:
+    canvas_gameover.move(img_over, tmp_x - tmp_pos_x, tmp_y - tmp_pos_y)
+    tmp_pos_x ,tmp_pos_y = autopy.mouse.location()
+    if(isPlaying == False):
+        ventana.after(1,hand_move_over)
 
 ventana = Tk()
 ventana.attributes('-fullscreen', True)
@@ -180,64 +230,120 @@ ventana.resizable(width=False, height=False)
 # ventana.iconbitmap('./imagenes/imagen.ico')
 ventana.config(cursor="none")
 
-## First Screen: instructions for controls
-def first_screen():
-    global ventana
-    canvas_init = Canvas(ventana, height=500, width=500, bg="salmon")
-    first_img = PhotoImage(file='assets/first.png')
-    canvas_init.create_image(game.wScr/2 ,game.hScr/2, image=first_img)
-    time.sleep(5)
-    # ventana.after(10,hand_move)
-    canvas_init.destroy()
 
-first_screen()
+# ventana.mainloop()
 ## Second instructions Screen: Game objetives
+instructions_img = PhotoImage(file='assets/instructions.png')
+def instructions_screen():
+    global ventana
+    global canvas_instructions
+    global instructions_img
+    global canvas_root
+    canvas_root.destroy()
+    canvas_instructions.create_image(game.wScr/2 ,game.hScr/2, image=instructions_img)
+    canvas_instructions.pack(fill=BOTH, expand=YES)
+    # time.sleep(5)
+    ventana.after(5000, jugar)
 
 # canvas_root = Canvas(ventana, height=game.hScr, width=game.wScr, bg="salmon")
 
+def salir():
+    sys.exit()
 
 logo_img = PhotoImage(file='assets/just_draw_logo.png')
-# etiqueta = Label(ventana, image=logo_img, fg='green',
-#                  font=('Verdana', 80), bg='salmon')
-# etiqueta.place(x=100, y=50)
+def menu():
+    global canvas_root
+    global canvas_init
+    global logo_img
+    canvas_init.destroy()
 
-canvas_root = Canvas(ventana, height=500, width=500, bg="salmon")
+    canvas_root.create_image(game.wScr/2 ,game.hScr/2 - 250, image=logo_img)
+    canvas_root.pack(fill=BOTH, expand=YES)
 
-canvas_root.create_image(game.wScr/2 ,game.hScr/2 - 250, image=logo_img)
-canvas_root.pack(fill=BOTH, expand=YES)
+    fontButton = 'Helvetica 15 bold'
+    boton_jugar = Button(canvas_root, text='JUGAR', command=instructions_screen, font=(fontButton))
+    boton_jugar.config( height = 5, width = 30, fg = "black", activebackground="#6ab14b", activeforeground="white")
+    boton_jugar.place(x=game.wScr/2 - 150, y=game.hScr/2 + 50)
 
+    boton_salir = Button(canvas_root, text='SALIR', command=salir, font=(fontButton))
+    boton_salir.config( height = 5, width = 30, fg = "black", activebackground="#6ab14b", activeforeground="white")
+
+    # boton_salir.grid(row = 1, column = 3, pady = 10, padx = 100)
+    boton_salir.place(x=game.wScr/2 - 150, y=game.hScr/2 + 180)
+    # ventana.after(1,hand_move(canvas_root))
+
+first_img = PhotoImage(file='assets/first.png')
+## First Screen: instructions for controls
+def first_screen():
+    global ventana
+    global canvas_init
+    global first_img
+    # first_img = PhotoImage(file='assets/first.png')
+    canvas_init.create_image(game.wScr/2 ,game.hScr/2, image=first_img)
+    canvas_init.pack(fill=BOTH, expand=YES)
+    # time.sleep(5)
+    ventana.after(5000, menu)
+
+gameover_img = PhotoImage(file='assets/game_over.png')
+gameover_img = gameover_img.subsample(2,2)
+## First Screen: instructions for controls
+def gameover_screen():
+    global ventana
+    global canvas_gameover
+    global game_canvas
+    global gameover_img
+    global isPlaying
+    isPlaying = False
+    game_canvas.destroy()
+    canvas_gameover.create_image(game.wScr/2 ,game.hScr/2, image=gameover_img)
+    canvas_gameover.pack(fill=BOTH, expand=YES)
+    fontButton = 'Helvetica 15 bold'
+    boton_jugar = Button(canvas_gameover, text='JUGAR OTRA VEZ', command=instructions_screen, font=(fontButton))
+    boton_jugar.config( height = 5, width = 30, fg = "black", activebackground="#6ab14b", activeforeground="white")
+    boton_jugar.place(x=game.wScr/2 - 150, y=game.hScr/2 + 100)
+
+    boton_salir = Button(canvas_gameover, text='SALIR', command=salir, font=(fontButton))
+    boton_salir.config( height = 5, width = 30, fg = "black", activebackground="#6ab14b", activeforeground="white")
+    boton_salir.place(x=game.wScr/2 - 150, y=game.hScr/2 + 230)
+    ventana.after(1,hand_move_over)
 
 # img=PhotoImage(file='imagen.ico')
 #Label(ventana, image=img).place(x=10, y=0)
 #ventana.tk.call('wn','imagen', ventana._w,img)
 
-
 def jugar():
     global s
     global t
-    global isPlaying    
-    canvas_root.destroy()
+    global isPlaying
+    global canvas_instructions
+    global game_canvas
+    global ventana
+    canvas_instructions.destroy()
     canvas_hp = Canvas(ventana, height=10, width=50, bg="red")
     # canvas_hp.create_line(15, 25, 200, 25,width=10)
     # canvas_hp.create_text(sWidth/2, sHeight/2, text="HP: " )
     # canvas_hp.pack()#fill=BOTH, expand=YES)
     isPlaying = True
     s, t = setup()
-    
     s.ontimer(timer, 10)
     # ventana.after(1,timer)
+    # game_canvas.labe(game.wScr/2 ,game.hScr/2, image=gameover_img)
+    label_score = Label(game_canvas, text=HP, fg='green', bg='white', font=('Helvetica', 40))
+    label_score.pack()
+    game_canvas.create_window(0, -380, window=label_score)
+    # ventana.after(1,print_score)
     s.onclick(click)
     
     s.mainloop()
 
-    # canvas = Canvas(master = ventana, width = 800, height = 800)
-    # canvas.grid(padx=2, pady=2, row=0, column=0, rowspan=10, columnspan=10) # , sticky='nsew')
-    # draw = turtle.TurtleScreen(canvas)
-    # pass
-
-
+canvas_gameover = Canvas(ventana, height=500, width=500, bg="salmon")
+# canvas_gameover.create_image(game.wScr/2 ,game.hScr/2, image=gameover_img)
+canvas_init = Canvas(ventana, height=500, width=500, bg="salmon")
+canvas_instructions = Canvas(ventana, height=500, width=500, bg="salmon")
+canvas_root = Canvas(ventana, height=500, width=500, bg="salmon")
 canva_hp = None
-game_canvas = None
+game_canvas = Canvas(ventana, height=500, width=500, bg="salmon")
+
 # s,t=setup()
 s = None
 t = None
@@ -259,7 +365,7 @@ lastSpawn = 0
 HP = 100
 Score = 0
 # rest HP if dont hit
-HpDec = 10
+HpDec = 50 ## CHANGEEEE THISS
 HpInc = 1
 Combo = 0
 sx = []
@@ -268,19 +374,7 @@ st = []
 sttl = []
 isPlaying = False
 
-fontButton = 'Helvetica 15 bold'
-boton_jugar = Button(ventana, text='JUGAR', command=first_screen, font=(fontButton))
-boton_jugar.config( height = 5, width = 30, fg = "black", activebackground="#6ab14b", activeforeground="white")
-boton_jugar.place(x=game.wScr/2 - 150, y=game.hScr/2 + 50)
-
-def salir():
-    sys.exit()
-
-boton_salir = Button(ventana, text='SALIR', command=salir, font=(fontButton))
-boton_salir.config( height = 5, width = 30, fg = "black", activebackground="#6ab14b", activeforeground="white")
-
-# boton_salir.grid(row = 1, column = 3, pady = 10, padx = 100)
-boton_salir.place(x=game.wScr/2 - 150, y=game.hScr/2 + 180)
+first_screen()
 
 # Hands position
 # hand_canvas = Canvas(ventana, width=game.wScr, height=game.hScr)
@@ -292,28 +386,12 @@ close_img = close_img.subsample(5, 5)
 # img = hand_canvas.create_image(260,125, anchor=NW,image=hand_img)
 tmp_pos_x ,tmp_pos_y = autopy.mouse.location()
 img = canvas_root.create_image(tmp_pos_x, tmp_pos_y, image=hand_img)
+img_over = canvas_gameover.create_image(tmp_pos_x, tmp_pos_y, image=hand_img)
 # hands_label = Label(ventana, image=hand_img, fg='green',
 #                  font=('Verdana', 80), bg='skyblue')
 # hands_label.place(x=100, y=50)
 
-def hand_move():
-    global tmp_pos_x
-    global tmp_pos_y
-    global img
-    game.detect_gesture(game.mode)
-    if(game.hand_state == 'Close'):
-        canvas_root.itemconfig(img,image=close_img)
-    if(game.hand_state == 'Open'):
-        canvas_root.itemconfig(img,image=hand_img)
-    tmp_x,tmp_y = autopy.mouse.location()
-    canvas_root.move(img, tmp_x - tmp_pos_x, tmp_y - tmp_pos_y)
-    tmp_pos_x ,tmp_pos_y = autopy.mouse.location()
-    # hand_canvas.move(img, 0, 1)
-    # hands_label.place(x=game.pos_x, y=game.pos_y)
-    # img = canvas_root.create_image(game.pos_x, game.pos_y, image=hand_img)
-    if(isPlaying == False):
-        ventana.after(1,hand_move)
-
+first_screen()
 # ventana.after(1,first_screen)
 ventana.after(1,hand_move)
 
