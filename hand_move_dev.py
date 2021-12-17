@@ -78,19 +78,17 @@ point_history = deque(maxlen=history_length)
 finger_gesture_history = deque(maxlen=history_length)
 
 ########################################################################
-mode = 0
-tmp_path = 0
-tmp_rename = 0
+mode = 0 
+tmp_path = 0 
+tmp_rename = 0 
 images_path = 'tmp_images/'
 wScr, hScr = autopy.screen.size()
-pos_x, pos_y = autopy.mouse.location()
+pos_x , pos_y = autopy.mouse.location()
 hand_state = 'Open'
 
-# while True:
-
-
-def detect_gesture(mode):
-    global hand_state
+while True:
+# def detect_gesture(mode):
+    # global hand_state
     ############## before loop #########
     fps = cvFpsCalc.get()
 
@@ -102,10 +100,10 @@ def detect_gesture(mode):
 
     # カメラキャプチャ #####################################################
     ret, image = cap.read()
-    if not ret:
-        print('Failed to capture image')
-        return
-    # Rotate the image
+    # if not ret:
+    #     print('Failed to capture image')
+    #     return
+    ## Rotate the image
     # image = cv.flip(image, 1)  # ミラー表示
     debug_image = copy.deepcopy(image)
 
@@ -116,18 +114,6 @@ def detect_gesture(mode):
     results = hands.process(image)
     image.flags.writeable = True
 
-    # # draw body edges
-    # s_img = cv.imread("assets/body_edges_small.png", -1)
-    # x_offset = int(wScr / 2)
-    # y_offset = int(hScr / 2)
-    # y1, y2 = y_offset, y_offset + s_img.shape[0]
-    # x1, x2 = x_offset, x_offset + s_img.shape[1]
-    # alpha_s = s_img[:, :, 3] / 255.0
-    # alpha_l = 1.0 - alpha_s
-    # for c in range(0, 3):
-    #     debug_image[y1:y2, x1:x2, c] = (
-    #         alpha_s * s_img[:, :, c] + alpha_l * debug_image[y1:y2, x1:x2, c])
-
     #  ####################################################################
     if results.multi_hand_landmarks is not None:
         for hand_landmarks, handedness in zip(results.multi_hand_landmarks,
@@ -135,8 +121,7 @@ def detect_gesture(mode):
             # 外接矩形の計算
             brect = detector.calc_bounding_rect(debug_image, hand_landmarks)
             # ランドマークの計算
-            landmark_list = detector.calc_landmark_list(
-                debug_image, hand_landmarks)
+            landmark_list = detector.calc_landmark_list(debug_image, hand_landmarks)
 
             # 相対座標・正規化座標への変換
             pre_processed_landmark_list = detector.pre_process_landmark(
@@ -145,7 +130,7 @@ def detect_gesture(mode):
                 debug_image, point_history)
             # 学習データ保存
             detector.logging_csv(number, mode, pre_processed_landmark_list,
-                                 pre_processed_point_history_list)
+                        pre_processed_point_history_list)
 
             # ハンドサイン分類
             hand_sign_id = keypoint_classifier(pre_processed_landmark_list)
@@ -165,23 +150,20 @@ def detect_gesture(mode):
             finger_gesture_history.append(finger_gesture_id)
             most_common_fg_id = detector.Counter(
                 finger_gesture_history).most_common()
-
+            
             # positions for move mouse
-            # (brect[0] + brect[2])/2
-            pos_x = (landmark_list[2][0] + landmark_list[0][0]) / 2
-            # (brect[1] + brect[3])/2
-            pos_y = (landmark_list[2][1] + landmark_list[0][1]) / 2
+            pos_x = (landmark_list[2][0] + landmark_list[0][0]) /2#(brect[0] + brect[2])/2
+            pos_y = (landmark_list[2][1] + landmark_list[0][1]) /2#(brect[1] + brect[3])/2
 
             hand_state = keypoint_classifier_labels[hand_sign_id]
-            if(keypoint_classifier_labels[hand_sign_id] == 'Close'):
-                autopy.mouse.move(pos_x + 60, pos_y + 60)
-                autopy.mouse.click()
-
-            if(pos_x < wScr and pos_y < hScr and pos_x > 0 and pos_y > 0):
-                autopy.mouse.move(pos_x + 60, pos_y + 60)
+            # if(keypoint_classifier_labels[hand_sign_id] == 'Close'):
+            #     autopy.mouse.move( pos_x + 60, pos_y + 60)
+            #     autopy.mouse.click()
+            
+            # if(pos_x < wScr and pos_y < hScr and pos_x > 0 and pos_y > 0):
+            #     autopy.mouse.move( pos_x + 60, pos_y + 60)
                 # autopy.mouse.move( pos_x, pos_y )1
                 # autopy.mouse.move(int(landmark_list[8][0]), int(landmark_list[8][1]))
-
             # Box
             # debug_image = detector.draw_bounding_rect(use_brect, debug_image, brect)
             # esqueleto hand
@@ -200,12 +182,12 @@ def detect_gesture(mode):
     # debug_image = draw_info(debug_image, fps, mode, number)
 
     # display image #####################################################
-    # cv.imshow('Hand Gesture Recognition', debug_image)
-    path = images_path + str(tmp_path) + '.png'
-    cv.imwrite(path, debug_image)
+    cv.imshow('Hand Gesture Recognition', debug_image)### here
+    # path = images_path + str(tmp_path) + '.png'
+    # cv.imwrite(path,debug_image)
 
-# cap.release()
-# cv.destroyAllWindows()
+cap.release()### here
+cv.destroyAllWindows()### here
 
 # def setup():
 #     s=turtle.Screen()
@@ -237,7 +219,7 @@ def detect_gesture(mode):
 #     global HP
 #     global Score
 #     global Combo
-#     global tmp_path
+#     global tmp_path 
 
 #     if tstep>=lastSpawn+Delay:
 #         sx.append(random.randrange(-320+A,320-A))
@@ -271,9 +253,9 @@ def detect_gesture(mode):
 #             drawCSq(t,sx[i],sy[i],A+A2)
 #     detect_gesture(mode)
 #     # os.system("mv temp.png temp.gif")
-
+    
 #     path_bg = images_path + str(tmp_path) + '.png'
-
+    
 #     s.bgpic(path_bg)
 #     s.update()
 #     rm_command = "rm " + images_path + str(tmp_path) + '.png'
